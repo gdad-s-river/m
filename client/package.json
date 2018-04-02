@@ -1,0 +1,24 @@
+{
+  "name": "client",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "classnames": "^2.2.5",
+    "diff-match-patch": "^1.0.0",
+    "idb": "^2.1.1",
+    "lodash.debounce": "^4.0.8",
+    "react": "^16.2.0",
+    "react-dom": "^16.2.0",
+    "react-scripts": "1.1.1"
+  },
+  "devDependencies": {
+    "serve": "^6.5.3"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test --env=jsdom",
+    "eject": "react-scripts eject",
+    "build-serve": "rm -rf build && yarn build && serve -s build"
+  }
+}
