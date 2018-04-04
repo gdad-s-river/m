@@ -39,7 +39,6 @@ exports.syncComment = async (req, res) => {
       }
     );
 
-    console.log(newComment);
     res.send({ newComment });
   }
 };
