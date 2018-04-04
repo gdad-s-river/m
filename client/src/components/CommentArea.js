@@ -4,6 +4,8 @@ import debounce from 'lodash.debounce';
 import DiffMatchPatch from 'diff-match-patch';
 import classnames from 'classnames';
 import axios from 'axios';
+// import { Prompt } from 'react-router-dom';
+
 import { isEmptyObject } from '../utils/object';
 
 import '../css/NetworkStatus.css';
@@ -68,6 +70,14 @@ class CommentArea extends Component {
     if (this.state.count) {
       await this.get();
     }
+
+    // prevent user from going out
+
+    window.addEventListener('beforeunload', event => {
+      if (this.state.isSaving) {
+        event.returnValue = `\o/`;
+      }
+    });
   }
 
   async get() {
@@ -172,6 +182,10 @@ class CommentArea extends Component {
 
     return (
       <section style={commentAreaStyles}>
+        {/* <Prompt
+          when={this.state.isSaving}
+          message={`Are you sure you want leave? Comment isn't saved yet`}
+        /> */}
         <textarea
           {...textareaSpecificProps}
           style={textareaStyles}
