@@ -1,23 +1,9 @@
 const mongoose = require('mongoose');
-const UnpublishedComment = mongoose.model('UnpublishedComment'); // leveraging mongoose's singleton patter;
+const UnpublishedComment = mongoose.model('UnpublishedComment');
 
 const DiffMatchPatch = require('diff-match-patch');
 
 const dmp = new DiffMatchPatch();
-
-// exports.syncComment = async (req, res) => {
-//   // const unpublishedComment = await new UnpublishedComment()
-//   // console.log(req.body);
-
-//   const count = await UnpublishedComment.count();
-
-//   if (!count) {
-//     const comment = await new UnpublishedComment(req.body).save();
-//     res.json({ comment });
-//   } else {
-//     res.json({ comment: '' });
-//   }
-// };
 
 exports.syncComment = async (req, res) => {
   const count = await UnpublishedComment.count();
@@ -55,7 +41,6 @@ exports.syncComment = async (req, res) => {
 };
 
 exports.getCommentCount = async (req, res) => {
-  // const comment = await UnpublishedComment.find();
   const count = await UnpublishedComment.count();
   res.json({ count });
 };

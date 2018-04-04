@@ -4,13 +4,13 @@ import debounce from 'lodash.debounce';
 import DiffMatchPatch from 'diff-match-patch';
 import classnames from 'classnames';
 import axios from 'axios';
+import { isEmptyObject } from '../utils/object';
 
 import '../css/NetworkStatus.css';
 
 const SERVER_HOST = 'http://localhost:7777';
 
 const dmp = new DiffMatchPatch();
-// import idb from 'idb';
 
 const commentAreaStyles = {};
 const textareaStyles = {
@@ -32,10 +32,6 @@ class CommentArea extends Component {
   };
 
   async componentDidMount() {
-    // throw new Error('oho');
-    // get the saved Value;
-    // read comment and set commentId;
-
     const { data: { count: count } } = await axios.get(
       `${SERVER_HOST}/api/fetch-unpublished/count`
     );
@@ -56,25 +52,8 @@ class CommentArea extends Component {
   }
 
   saveData = debounce(async value => {
-    /**
-     * NOTE: This will not be needed when one'd have multiple
-     * 'unpublishedComments' associated with say different blogposts
-     //  */
-
-    // check if there is previous comment text
-    // if (!this.state.comment.text) {
-    //   const { data: { comment: newComment } } = await axios.post(
-    //     `${SERVER_HOST}/api/sync`,
-    //     {
-    //       text: this.state.value
-    //     }
-    //   );
-
-    //   this.setState({ comment: newComment });
-    // }
-
     const postPath = `${SERVER_HOST}/api/sync`;
-    if (!this.state.comment.text) {
+    if (isEmptyObject(this.state.comment)) {
       /**
        * Send the diff between empty string and current value
        */
@@ -94,35 +73,19 @@ class CommentArea extends Component {
       let diffs = dmp.diff_main(savedCommentText, toBeSavedText);
       let patches = dmp.patch_make(savedCommentText, diffs);
 
-      const newComment = axios.post(postPath, {
-        _id: this.state.comment._id,
-        previouslySavedText: savedCommentText,
-        patches
-      });
+      if (patches.length) {
+        const { data: { newComment: newComment } } = await axios.post(
+          postPath,
+          {
+            _id: this.state.comment._id,
+            previouslySavedText: savedCommentText,
+            patches
+          }
+        );
 
-      this.setState({ comment: newComment });
+        this.setState({ comment: newComment });
+      }
     }
-
-    // this.setState({ commentId: id });
-
-    // console.log('new Value', value);
-    /** Patch diff here with previousSavedVal and this.state.value */
-
-    // console.log(
-    //   'difference between ',
-    //   this.state.previousSavedVal,
-    //   ' and ',
-    //   value
-    // );
-
-    // let patches = dmp.patch_make(this.state.previousSavedVal, value);
-    // console.log('patches: ', patches[0]);
-    // console.log(
-    //   'reconstruction ',
-    //   dmp.patch_apply(patches, this.state.previousSavedVal)
-    // );
-
-    // this.setState({ previousSavedVal: value });
   }, 2000);
 
   handleChange = e => {
