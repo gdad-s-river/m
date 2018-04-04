@@ -17,9 +17,13 @@ exports.syncComment = async (req, res) => {
 
     res.send({ newComment });
   } else {
-    const { _id, patches, previouslySavedText } = req.body;
+    const { _id, patches } = req.body;
 
-    console.log(previouslySavedText);
+    // read previouslysaved text;
+
+    const { text: previouslySavedText } = await UnpublishedComment.findOne({
+      _id: _id
+    });
 
     let [reconstructedMsg, results] = dmp.patch_apply(
       patches,
