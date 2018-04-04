@@ -30,6 +30,27 @@ exports.syncComment = async (req, res) => {
     }).save();
 
     res.send({ newComment });
+  } else {
+    const { _id, patches, previouslySavedText } = req.body;
+
+    console.log(previouslySavedText);
+
+    let [reconstructedMsg, results] = dmp.patch_apply(
+      patches,
+      previouslySavedText
+    );
+
+    const newComment = await UnpublishedComment.findOneAndUpdate(
+      { _id },
+      { text: reconstructedMsg },
+      {
+        new: true,
+        runValidators: true
+      }
+    );
+
+    console.log(newComment);
+    res.send({ newComment });
   }
 };
 

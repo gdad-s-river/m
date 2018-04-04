@@ -73,6 +73,7 @@ class CommentArea extends Component {
     //   this.setState({ comment: newComment });
     // }
 
+    const postPath = `${SERVER_HOST}/api/sync`;
     if (!this.state.comment.text) {
       /**
        * Send the diff between empty string and current value
@@ -81,10 +82,9 @@ class CommentArea extends Component {
       let diffs = dmp.diff_main('', this.state.value);
       let patches = dmp.patch_make('', diffs);
 
-      const { data: { newComment: newComment } } = await axios.post(
-        `${SERVER_HOST}/api/sync`,
-        { patches }
-      );
+      const { data: { newComment: newComment } } = await axios.post(postPath, {
+        patches
+      });
 
       this.setState({ comment: newComment });
     } else {
@@ -93,6 +93,14 @@ class CommentArea extends Component {
 
       let diffs = dmp.diff_main(savedCommentText, toBeSavedText);
       let patches = dmp.patch_make(savedCommentText, diffs);
+
+      const newComment = axios.post(postPath, {
+        _id: this.state.comment._id,
+        previouslySavedText: savedCommentText,
+        patches
+      });
+
+      this.setState({ comment: newComment });
     }
 
     // this.setState({ commentId: id });
