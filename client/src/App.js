@@ -11,21 +11,7 @@ class App extends React.Component {
     e.type === 'online'
       ? this.setState({ networkStatus: 'online' })
       : this.setState({ networkStatus: 'offline' });
-
-    // if (e.type === 'online') {
-    //   this.handleComingOnline(e.type);
-    // } else {
-    //   this.handleGoingOffline(e.type);
-    // }
   };
-
-  handleComingOnline(networkStateType) {
-    this.setState({ networkStatus: networkStateType });
-  }
-
-  handleGoingOffline(networkStateType) {
-    this.setState({ networkStatus: networkStateType });
-  }
 
   componentDidMount() {
     window.addEventListener('online', this.handleNetwork);
