@@ -3,12 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "axios": "^0.18.0",
     "classnames": "^2.2.5",
     "diff-match-patch": "^1.0.0",
     "idb": "^2.1.1",
     "lodash.debounce": "^4.0.8",
-    "react": "^16.2.0",
-    "react-dom": "^16.2.0",
+    "react": "^16.3.0",
+    "react-dom": "^16.3.0",
+    "react-router": "^4.2.0",
     "react-scripts": "1.1.1"
   },
   "devDependencies": {
