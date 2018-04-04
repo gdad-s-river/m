@@ -26,7 +26,6 @@ app.use(helmet()); // secure common headers
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Exposes a bunch of methods for validating data. Used heavily on userController.validateRegister
 app.use(expressValidator());
 // app.use(favicon(path.join(app.get('public'), 'favicon.ico')));
 
@@ -38,13 +37,14 @@ app.use(
 
 app.use(logRequestStart);
 
-// After allllll that above middleware, we finally handle our own routes!
 app.use('/', routes);
 
-// If that above routes didnt work, we 404 them and forward to error handler
 app.use(errorHandlers.notFound);
-// production error handler
-// app.use(errorHandlers.productionErrors);
 
-// done! we export it so we can start the site in start.js
+if (app.get('env') === 'development') {
+  app.use(errorHandlers.developmentErrors);
+}
+
+app.use(errorHandlers.productionErrors);
+
 module.exports = app;
