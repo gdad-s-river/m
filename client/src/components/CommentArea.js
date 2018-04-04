@@ -9,7 +9,7 @@ import { isEmptyObject } from '../utils/object';
 
 import '../css/NetworkStatus.css';
 
-const SERVER_HOST = 'http://localhost:7777';
+const SERVER_HOST = process.env.REACT_APP_SERVER_HOST;
 
 const dmp = new DiffMatchPatch();
 
@@ -36,18 +36,12 @@ class CommentArea extends Component {
   };
 
   static getDerivedStateFromProps(nextProps, prevState) {
-    // console.log(nextProps.networkStatus);
-    // console.log(prevState.propState.networkStatus);
     if (nextProps.networkStatus !== prevState.propState.networkStatus) {
       let stateUpdate = {
         propState: {
           networkStatus: nextProps.networkStatus
         }
       };
-
-      // if (nextProps.networkStatus === 'online') {
-      //   stateUpdate.isSaving = true;
-      // }
 
       return stateUpdate;
     }
@@ -118,32 +112,30 @@ class CommentArea extends Component {
 
   saveData = debounce(async value => {
     const postPath = `${SERVER_HOST}/api/sync`;
-    if (isEmptyObject(this.state.comment)) {
-      /**
-       * Send the diff between empty string and current value
-       */
 
-      let diffs = dmp.diff_main('', this.state.value);
-      let patches = dmp.patch_make('', diffs);
+    const previousCommentIsEmpty = isEmptyObject(this.state.comment);
 
-      this.sync(postPath, {
-        patches
-      });
+    let savedCommentText = previousCommentIsEmpty
+      ? ''
+      : this.state.comment.text;
+
+    let toBeSavedText = this.state.value;
+
+    let diffs = dmp.diff_main(savedCommentText, toBeSavedText);
+    let patches = dmp.patch_make(savedCommentText, diffs);
+
+    const postOptions = {
+      patches
+    };
+
+    if (!previousCommentIsEmpty) {
+      postOptions._id = this.state.comment._id;
+    }
+
+    if (patches.length) {
+      this.sync(postPath, postOptions);
     } else {
-      let savedCommentText = this.state.comment.text;
-      let toBeSavedText = this.state.value;
-
-      let diffs = dmp.diff_main(savedCommentText, toBeSavedText);
-      let patches = dmp.patch_make(savedCommentText, diffs);
-
-      if (patches.length) {
-        this.sync(postPath, {
-          _id: this.state.comment._id,
-          patches
-        });
-      } else {
-        this.setState({ isSaving: false });
-      }
+      this.setState({ isSaving: false });
     }
   }, 2000);
 
@@ -162,7 +154,6 @@ class CommentArea extends Component {
       rows: '10'
     };
 
-    // const { networkStatus } = this.props;
     const { propState: { networkStatus }, errors } = this.state;
 
     const isOnline = networkStatus === 'online';
