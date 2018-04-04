@@ -17,7 +17,6 @@ const commentAreaStyles = {};
 const textareaStyles = {
   margin: '15px 0'
 };
-const networkStatusMessageStyles = {};
 
 class CommentArea extends Component {
   static propTypes = {
@@ -56,7 +55,7 @@ class CommentArea extends Component {
   }
 
   async componentDidMount() {
-    const { data: { count: count } } = await axios.get(
+    const { data: { count } } = await axios.get(
       `${SERVER_HOST}/api/fetch-unpublished/count`
     );
 
@@ -78,7 +77,7 @@ class CommentArea extends Component {
 
   async get() {
     try {
-      const { data: { comment: comment } } = await axios.get(
+      const { data: { comment } } = await axios.get(
         `${SERVER_HOST}/api/fetch-unpublished`
       );
 
@@ -95,10 +94,7 @@ class CommentArea extends Component {
 
   async sync(postPath, postData) {
     try {
-      const { data: { newComment: newComment } } = await axios.post(
-        postPath,
-        postData
-      );
+      const { data: { newComment } } = await axios.post(postPath, postData);
       this.setState({ comment: newComment, isSaving: false, errors: {} });
     } catch (e) {
       console.error(`There was an error while trying to save comment — ${e}`);
