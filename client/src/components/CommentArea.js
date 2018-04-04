@@ -4,7 +4,6 @@ import debounce from 'lodash.debounce';
 import DiffMatchPatch from 'diff-match-patch';
 import classnames from 'classnames';
 import axios from 'axios';
-// import { Prompt } from 'react-router-dom';
 
 import { isEmptyObject } from '../utils/object';
 
@@ -46,9 +45,9 @@ class CommentArea extends Component {
         }
       };
 
-      if (nextProps.networkStatus === 'online') {
-        stateUpdate.isSaving = true;
-      }
+      // if (nextProps.networkStatus === 'online') {
+      //   stateUpdate.isSaving = true;
+      // }
 
       return stateUpdate;
     }
@@ -57,7 +56,9 @@ class CommentArea extends Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
-    this.saveData(this.state.value);
+    if (prevProps.networkStatus !== this.props.networkStatus) {
+      this.saveData(this.state.value);
+    }
   }
 
   async componentDidMount() {
@@ -71,11 +72,12 @@ class CommentArea extends Component {
       await this.get();
     }
 
-    // prevent user from going out
-
-    window.addEventListener('beforeunload', event => {
+    window.addEventListener('beforeunload', e => {
       if (this.state.isSaving) {
-        event.returnValue = `\o/`;
+        var confirmationMessage = 'o/';
+
+        e.returnValue = confirmationMessage; // Gecko, Trident, Chrome 34+
+        return confirmationMessage;
       }
     });
   }
@@ -86,7 +88,7 @@ class CommentArea extends Component {
         `${SERVER_HOST}/api/fetch-unpublished`
       );
 
-      this.setState({ comment, value: comment.text });
+      this.setState({ comment, value: comment.text, errors: {} });
     } catch (e) {
       console.log(`There was an error while trying to fetch comment - ${e}`);
       this.setState({
@@ -103,7 +105,7 @@ class CommentArea extends Component {
         postPath,
         postData
       );
-      this.setState({ comment: newComment, isSaving: false });
+      this.setState({ comment: newComment, isSaving: false, errors: {} });
     } catch (e) {
       console.error(`There was an error while trying to save comment — ${e}`);
       this.setState({
@@ -139,6 +141,8 @@ class CommentArea extends Component {
           _id: this.state.comment._id,
           patches
         });
+      } else {
+        this.setState({ isSaving: false });
       }
     }
   }, 2000);
@@ -172,20 +176,22 @@ class CommentArea extends Component {
       ? 'You are online! can start writing, and text will auto sync with the server'
       : 'Oops, Network is down, you appear to be offline';
 
+    /**
+     * used index as keys because all three points in the following articles meets
+     * the requirements — https://medium.com/@robinpokorny/index-as-a-key-is-an-anti-pattern-e0349aece318
+     */
     const errorsElements = !isEmptyObject(errors)
-      ? Object.keys(errors).map(errorType => {
+      ? Object.keys(errors).map((errorType, i) => {
           return (
-            <div className={`error-${errorType}`}>{errors[errorType]}</div>
+            <div key={i} className={`error-${errorType}`}>
+              {errors[errorType]}
+            </div>
           );
         })
       : null;
 
     return (
       <section style={commentAreaStyles}>
-        {/* <Prompt
-          when={this.state.isSaving}
-          message={`Are you sure you want leave? Comment isn't saved yet`}
-        /> */}
         <textarea
           {...textareaSpecificProps}
           style={textareaStyles}
@@ -198,7 +204,7 @@ class CommentArea extends Component {
             ? this.state.isSaving
               ? 'Syncing'
               : isEmptyObject(this.state.comment) ? null : 'Synced'
-            : "can't save network down"}
+            : "Can't autosave anymore network down 🏳️. But! you can keep writing, and it'll save as soon as network is online again 🏁"}
         </div>
         <div className="errors" style={{ color: '#ff576c' }}>
           {errorsElements}
