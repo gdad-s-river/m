@@ -25,13 +25,13 @@ class CommentArea extends Component {
 
   state = {
     value: '',
-    previousSavedVal: '',
     isSaving: false,
     count: 0,
     comment: {},
     propState: {
       networkStatus: this.props.networkStatus
-    }
+    },
+    errors: {}
   };
 
   static getDerivedStateFromProps(nextProps, prevState) {
@@ -66,16 +66,25 @@ class CommentArea extends Component {
     this.setState({ count });
 
     if (this.state.count) {
+      await this.get();
+    }
+  }
+
+  async get() {
+    try {
       const { data: { comment: comment } } = await axios.get(
         `${SERVER_HOST}/api/fetch-unpublished`
       );
 
       this.setState({ comment, value: comment.text });
+    } catch (e) {
+      console.log(`There was an error while trying to fetch comment - ${e}`);
+      this.setState({
+        errors: {
+          get: 'There was an error while fetching the comment'
+        }
+      });
     }
-  }
-
-  componentDidUpdate(prevProps, prevState) {
-    // console.log('prevState', prevState.value);
   }
 
   async sync(postPath, postData) {
@@ -86,7 +95,12 @@ class CommentArea extends Component {
       );
       this.setState({ comment: newComment, isSaving: false });
     } catch (e) {
-      console.error(`Ooops, something went wrong ${e}`);
+      console.error(`There was an error while trying to save comment — ${e}`);
+      this.setState({
+        errors: {
+          post: `There was error while saving the comment`
+        }
+      });
     }
   }
 
@@ -135,7 +149,7 @@ class CommentArea extends Component {
     };
 
     // const { networkStatus } = this.props;
-    const { propState: { networkStatus } } = this.state;
+    const { propState: { networkStatus }, errors } = this.state;
 
     const isOnline = networkStatus === 'online';
 
@@ -145,8 +159,16 @@ class CommentArea extends Component {
     );
 
     let networkStatusText = isOnline
-      ? 'You can start writing, and text will auto sync with the server'
-      : 'Oops, Network is down';
+      ? 'You are online! can start writing, and text will auto sync with the server'
+      : 'Oops, Network is down, you appear to be offline';
+
+    const errorsElements = !isEmptyObject(errors)
+      ? Object.keys(errors).map(errorType => {
+          return (
+            <div className={`error-${errorType}`}>{errors[errorType]}</div>
+          );
+        })
+      : null;
 
     return (
       <section style={commentAreaStyles}>
@@ -162,7 +184,10 @@ class CommentArea extends Component {
             ? this.state.isSaving
               ? 'Syncing'
               : isEmptyObject(this.state.comment) ? null : 'Synced'
-            : 'You appear to be offline'}
+            : "can't save network down"}
+        </div>
+        <div className="errors" style={{ color: '#ff576c' }}>
+          {errorsElements}
         </div>
       </section>
     );

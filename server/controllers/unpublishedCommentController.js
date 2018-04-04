@@ -32,7 +32,7 @@ exports.syncComment = async (req, res) => {
 
     const newComment = await UnpublishedComment.findOneAndUpdate(
       { _id },
-      { text: reconstructedMsg },
+      { text: reconstructedMsg, updatedAt: Date.now() },
       {
         new: true,
         runValidators: true
