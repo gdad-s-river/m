@@ -29,4 +29,4 @@ More than anything else, if you could provide whatever feedback that you can, if
 
 ### Update
 
-Starting taking testing frontendmasters courses by Kent C.Dodds
+Starting taking [testing frontendmasters course by Kent C.Dodds](https://frontendmasters.com/courses/testing-javascript)
