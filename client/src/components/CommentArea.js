@@ -50,6 +50,7 @@ class CommentArea extends Component {
 
   componentDidUpdate(prevProps, prevState) {
     if (prevProps.networkStatus !== this.props.networkStatus) {
+      this.setState({ errors: {} });
       this.saveData(this.state.value);
     }
   }
@@ -87,12 +88,14 @@ class CommentArea extends Component {
       this.setState({
         errors: {
           get: 'There was an error while fetching the comment'
-        }
+        },
+        isSaving: false
       });
     }
   }
 
   async sync(postPath, postData) {
+    this.setState({ isSaving: true });
     try {
       const { data: { newComment } } = await axios.post(postPath, postData);
       this.setState({ comment: newComment, isSaving: false, errors: {} });
@@ -100,22 +103,21 @@ class CommentArea extends Component {
       // very bloated error handling; provide a separate error
       // handling utility;
       let maxLength;
+      let errorMessage;
       if (e.response) {
         const { data: { errors: { text: { kind } } } } = e.response;
         if (kind === 'maxlength') {
           maxLength = e.response.data.errors.text.properties.maxlength;
+          errorMessage = `Text can't have more than ${maxLength} characters`;
+        } else {
+          errorMessage = `There was error while saving the comment`;
         }
       }
 
       console.error(`There was an error while trying to save comment — ${e}`);
       this.setState({
         errors: {
-          post:
-            e.response &&
-            e.response.data.errors &&
-            e.response.data.errors.text.kind === 'maxLength'
-              ? `Text can't have more than ${maxLength} characters`
-              : `There was error while saving the comment`
+          post: errorMessage
         }
       });
     }
@@ -153,6 +155,9 @@ class CommentArea extends Component {
   handleChange = e => {
     let value = e.target.value;
 
+    // reset errors for every change
+    this.setState({ errors: {} });
+
     this.setState({ value, isSaving: true });
     this.saveData(value);
   };
@@ -165,7 +170,12 @@ class CommentArea extends Component {
       rows: '10'
     };
 
-    const { propState: { networkStatus }, errors } = this.state;
+    const {
+      propState: { networkStatus },
+      errors,
+      comment,
+      isSaving
+    } = this.state;
 
     const isOnline = networkStatus === 'online';
 
@@ -192,6 +202,14 @@ class CommentArea extends Component {
         })
       : null;
 
+    const savingStatus = isOnline
+      ? isSaving
+        ? !isEmptyObject(errors) ? 'Error See Below' : 'Syncing'
+        : !isEmptyObject(errors)
+          ? 'Error See Below'
+          : !isEmptyObject(comment) ? 'Synced' : null
+      : `Can't autosave anymore network down 🏳️. But! you can keep writing, and it'll save as soon as network is online again 🏁`;
+
     return (
       <section style={commentAreaStyles}>
         <textarea
@@ -201,15 +219,7 @@ class CommentArea extends Component {
           onChange={this.handleChange}
         />
         <div className={networkMessageClasses}>{networkStatusText} </div>
-        <div className="savinStatus">
-          {isEmptyObject(errors)
-            ? isOnline
-              ? this.state.isSaving
-                ? 'Syncing'
-                : isEmptyObject(this.state.comment) ? null : 'Synced'
-              : "Can't autosave anymore network down 🏳️. But! you can keep writing, and it'll save as soon as network is online again 🏁"
-            : isOnline ? 'Syncing' : 'Error: see below'}
-        </div>
+        <div className="savinStatus">{savingStatus}</div>
         <div className="errors" style={{ color: '#ff576c' }}>
           {errorsElements}
         </div>
