@@ -1,6 +1,5 @@
 import React from 'react';
 import { errorBoundaryMessage } from '../utils/userMessages';
-// import PropTypes from 'prop-types';
 
 const ErrorBoundaryStyles = {
   maxWidth: '800px',

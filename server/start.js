@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 
-// Make sure we are running node 7.6+
 const version = process.versions.node.split('.').map(parseFloat)[0];
 if (version < 8) {
   console.log(
