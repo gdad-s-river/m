@@ -1,14 +1,16 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
-const unpublishedCommentSchema = new mongoose.Schema({
-  text: {
-    type: String
+const unpublishedCommentSchema = new mongoose.Schema(
+  {
+    text: {
+      type: String,
+      maxlength: 5000
+    }
   },
-  updatedAt: {
-    type: Date,
-    default: Date.now
+  {
+    timestamps: true
   }
-});
+);
 
 module.exports = mongoose.model('UnpublishedComment', unpublishedCommentSchema);

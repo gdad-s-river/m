@@ -32,14 +32,14 @@ exports.syncComment = async (req, res) => {
 
     const newComment = await UnpublishedComment.findOneAndUpdate(
       { _id },
-      { text: reconstructedMsg, updatedAt: Date.now() },
+      { text: reconstructedMsg },
       {
         new: true,
         runValidators: true
       }
     );
 
-    res.send({ newComment });
+    res.json({ newComment });
   }
 };
 

@@ -12,12 +12,15 @@ const routes = require('./routes/index');
 const errorHandlers = require('./handlers/errorHandlers');
 const { logRequestStart } = require('./handlers/logger');
 
-// create our Express app
 const app = express();
 
 // view engine setup
-app.set('views', path.join(__dirname, 'views')); // this is the folder where we keep our pug files
-app.set('view engine', 'pug'); // we use the engine pug, mustache or EJS work great too
+// set it to jsx, when one would need ssr
+// TODO: https://github.com/reactjs/express-react-views
+
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'jsx');
+app.engine('jsx', require('express-react-views').createEngine());
 
 // app.use(express.static(path.join(__dirname, 'public')));
 

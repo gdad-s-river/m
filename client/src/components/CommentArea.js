@@ -66,7 +66,7 @@ class CommentArea extends Component {
     }
 
     window.addEventListener('beforeunload', e => {
-      if (this.state.isSaving) {
+      if (this.state.isSaving || this.propState.networkStatus === 'offline') {
         var confirmationMessage = 'o/';
 
         e.returnValue = confirmationMessage; // Gecko, Trident, Chrome 34+
@@ -97,10 +97,22 @@ class CommentArea extends Component {
       const { data: { newComment } } = await axios.post(postPath, postData);
       this.setState({ comment: newComment, isSaving: false, errors: {} });
     } catch (e) {
+      // very bloated error handling; provide a separate error
+      // handling utility;
+      let maxLength;
+      if (e.response) {
+        const { data: { errors: { text: { kind } } } } = e.response;
+        if (kind === 'maxlength') {
+          maxLength = e.response.data.errors.text.properties.maxlength;
+        }
+      }
+
       console.error(`There was an error while trying to save comment — ${e}`);
       this.setState({
         errors: {
-          post: `There was error while saving the comment`
+          post:
+            `Text can't have more than ${maxLength} characters` ||
+            `There was error while saving the comment`
         }
       });
     }
@@ -187,11 +199,15 @@ class CommentArea extends Component {
         />
         <div className={networkMessageClasses}>{networkStatusText} </div>
         <div className="savinStatus">
-          {isOnline
-            ? this.state.isSaving
-              ? 'Syncing'
-              : isEmptyObject(this.state.comment) ? null : 'Synced'
-            : "Can't autosave anymore network down 🏳️. But! you can keep writing, and it'll save as soon as network is online again 🏁"}
+          {isEmptyObject(errors)
+            ? isOnline
+              ? this.state.isSaving
+                ? 'Syncing'
+                : isEmptyObject(this.state.comment) && isEmptyObject(errors)
+                  ? null
+                  : 'Synced'
+              : "Can't autosave anymore network down 🏳️. But! you can keep writing, and it'll save as soon as network is online again 🏁"
+            : 'Error: see below'}
         </div>
         <div className="errors" style={{ color: '#ff576c' }}>
           {errorsElements}
