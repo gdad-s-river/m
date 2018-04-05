@@ -111,8 +111,11 @@ class CommentArea extends Component {
       this.setState({
         errors: {
           post:
-            `Text can't have more than ${maxLength} characters` ||
-            `There was error while saving the comment`
+            e.response &&
+            e.response.data.errors &&
+            e.response.data.errors.text.kind === 'maxLength'
+              ? `Text can't have more than ${maxLength} characters`
+              : `There was error while saving the comment`
         }
       });
     }
@@ -203,11 +206,9 @@ class CommentArea extends Component {
             ? isOnline
               ? this.state.isSaving
                 ? 'Syncing'
-                : isEmptyObject(this.state.comment) && isEmptyObject(errors)
-                  ? null
-                  : 'Synced'
+                : isEmptyObject(this.state.comment) ? null : 'Synced'
               : "Can't autosave anymore network down 🏳️. But! you can keep writing, and it'll save as soon as network is online again 🏁"
-            : 'Error: see below'}
+            : isOnline ? 'Syncing' : 'Error: see below'}
         </div>
         <div className="errors" style={{ color: '#ff576c' }}>
           {errorsElements}
