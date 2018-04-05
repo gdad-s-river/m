@@ -45,7 +45,7 @@ class CommentArea extends Component {
       return stateUpdate;
     }
 
-    return prevState;
+    return null;
   }
 
   componentDidUpdate(prevProps, prevState) {
