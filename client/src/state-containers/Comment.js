@@ -6,9 +6,9 @@ import logErrorToService from '../utils/logErrorToService';
 
 class CommentStateContainer extends Container {
   state = {
-    commentHTTPState: 'idle', // 'fetching', 'error', 'saved', 'saving', 'fetched'
-    comment: null,
-    error: null
+    commentHTTPState: 'idle', // 'fetching', 'error', 'saved', 'saving', 'fetched', 'Nothing changed'
+    comment: {},
+    error: {}
   };
 
   async get(getPath) {
@@ -37,11 +37,9 @@ class CommentStateContainer extends Container {
       this.setState({
         comment,
         commentHTTPState: 'fetched',
-        error: null
+        error: {}
       });
     }
-
-    // WATCH WHAT YOU DO HERE
 
     // if there is no comment; there is no error, do nothing
     // set the state to idle
@@ -53,9 +51,7 @@ class CommentStateContainer extends Container {
 
   async sync(postPath, postData) {
     this.setState({ commentHTTPState: 'saving' });
-    const [err, { data: newComment }] = await to(
-      axios.post(postPath, postData)
-    );
+    const [err, response] = await to(axios.post(postPath, postData));
 
     if (err) {
       let maxLength;
@@ -79,22 +75,15 @@ class CommentStateContainer extends Container {
       }
     } // err over
 
-    if (newComment) {
+    if (response && response.data) {
       this.setState({
-        comment: newComment,
+        comment: response.data.newComment,
         commentHTTPState: 'saved',
-        error: null
+        error: {}
       });
     }
 
-    // WATCH WHAT YOU DO HERE
-
-    // don't know if this is needed
-    // this.setState({
-    //   comment: this.state.comment,
-    //   commentHTTPState: 'idle',
-    //   errors: null
-    // });
+    // not needed anything here, because either post will be successful or it'll fail
   }
 }
 

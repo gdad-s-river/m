@@ -2,13 +2,11 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import debounce from 'lodash.debounce';
 import DiffMatchPatch from 'diff-match-patch';
-import axios from 'axios';
-import to from 'await-to-js';
 
 import { CommentBox } from '../components/';
 
 import serverPaths from '../utils/serverPaths';
-import logErrorToService from '../utils/logErrorToService';
+import { isEmptyObject } from '../utils/object';
 
 const dmp = new DiffMatchPatch();
 
@@ -19,10 +17,7 @@ class CommentBoxViewContainer extends Component {
   };
 
   state = {
-    value: '',
-    propState: {
-      networkStatus: this.props.networkStatus
-    }
+    value: ''
   };
 
   setValue = value => {
@@ -30,16 +25,10 @@ class CommentBoxViewContainer extends Component {
   };
 
   static getDerivedStateFromProps(nextProps, prevState) {
-    if (nextProps.networkStatus !== prevState.propState.networkStatus) {
-      return {
-        propState: {
-          networkStatus: nextProps.networkStatus
-        }
-      };
-    }
-
     const { state } = nextProps.commentService;
 
+    // if comment is fetched; put it in the state so that
+    // it can be passed down to presentational 'components/CommentBox'
     if (state.commentHTTPState === 'fetched') {
       return { value: state.comment.text };
     }
@@ -48,21 +37,34 @@ class CommentBoxViewContainer extends Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
-    if (
-      prevProps.networkStatus !== this.props.networkStatus &&
-      this.props.networkStatus === 'online'
-    ) {
-      this.saveData(this.save.value);
+    const { commentService } = this.props;
+    if (prevProps.networkStatus !== this.props.networkStatus) {
+      if (this.props.networkStatus === 'online') {
+        this.saveData(this.state.value);
+        // reset all errors
+        commentService.setState({
+          commentHTTPState: 'idle',
+          error: {}
+        });
+      } else {
+        commentService.setState({
+          commentHTTPState: 'error',
+          error: {
+            message: 'You are offline'
+          }
+        });
+      }
     }
   }
 
   async componentDidMount() {
     const { commentService, networkStatus } = this.props;
-    const { get, state } = commentService;
+    // const { networkStatus } = this.state.propState;
+    const { state } = commentService;
+
+    this.preventUserFromLeaving(state.commentHTTPState, networkStatus);
 
     commentService.get(serverPaths.get.unpublishedComment);
-
-    this.preventUserFromLeaving(state.commentHTTPState, networkStatus, state);
   }
 
   saveData = debounce(async value => {
@@ -71,14 +73,11 @@ class CommentBoxViewContainer extends Component {
 
     const postPath = serverPaths.post.unpublishedComment;
 
-    const savedComment = !state.comment ? '' : state.comment.text;
-
+    const previousCommentIsEmpty = isEmptyObject(state.comment);
+    let savedComment = previousCommentIsEmpty ? '' : state.comment.text;
     let toBeSavedComment = this.state.value;
 
-    // TODO: try named importing them
-    console.log(savedComment, toBeSavedComment);
     let diffs = dmp.diff_main(savedComment, toBeSavedComment);
-
     let patches = dmp.patch_make(savedComment, diffs);
 
     const postOptions = {
@@ -91,10 +90,12 @@ class CommentBoxViewContainer extends Component {
 
     if (patches.length) {
       commentService.sync(postPath, postOptions);
+    } else {
+      commentService.setState({ commentHTTPState: 'Nothing Changed' });
     }
   }, 2000);
 
-  preventUserFromLeaving(commentHTTPState, networkStatus, state) {
+  preventUserFromLeaving(commentHTTPState, networkStatus) {
     if (!window) {
       throw new Error(
         'you got to call preventUserFromLeaving function when window is available'
@@ -102,8 +103,8 @@ class CommentBoxViewContainer extends Component {
     }
 
     window.addEventListener('beforeunload', e => {
-      if (state.commentHTTPState === 'saving' || networkStatus === 'offline') {
-        let confirmationMessage = `\o/`;
+      if (commentHTTPState === 'saving' || networkStatus === 'offline') {
+        let confirmationMessage = 'o/';
 
         e.returnValue = confirmationMessage; // Gecko, Trident, Chrome 34+
 
@@ -115,7 +116,7 @@ class CommentBoxViewContainer extends Component {
   handleChange = newCommentText => {
     // reset post errors before trying to fetch again;
     this.props.commentService.setState({
-      error: null,
+      error: {},
       commentHTTPState: 'saving'
     });
 
