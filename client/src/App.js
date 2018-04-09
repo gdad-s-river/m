@@ -1,37 +1,69 @@
 import React from 'react';
-import { CommentArea, Header, ErrorBoundary } from './components';
+import { Provider, Subscribe } from 'unstated';
+import { PropTypes } from 'prop-types';
+
+import {
+  OfflineStateContainer,
+  CommentStateContainer
+} from './state-containers';
+
+import { CommentBoxViewContainer } from './view-containers';
+
+import { Header, ErrorBoundary } from './components';
 import './css/App.css';
 
-class App extends React.Component {
-  state = {
-    networkStatus: 'online'
-  };
+// console.log(CommentBoxViewContainer);
 
-  handleNetwork = e => {
-    e.type === 'online'
-      ? this.setState({ networkStatus: 'online' })
-      : this.setState({ networkStatus: 'offline' });
+// child
+class AppWithNetworkStatusEvents extends React.Component {
+  static propTypes = {
+    offlineService: PropTypes.object.isRequired
   };
 
   componentDidMount() {
-    window.addEventListener('online', this.handleNetwork);
-    window.addEventListener('offline', this.handleNetwork);
+    const { offlineService } = this.props;
+    window.addEventListener('online', offlineService.handleNetworkChange);
+    window.addEventListener('offline', offlineService.handleNetworkChange);
   }
 
   render() {
-    const { networkStatus } = this.state;
+    const { networkStatus } = this.props.offlineService.state;
 
     return (
       <div className="App">
         <Header />
         <ErrorBoundary>
-          <CommentArea networkStatus={networkStatus} />
+          <Subscribe to={[CommentStateContainer]}>
+            {commentService => {
+              return (
+                <CommentBoxViewContainer
+                  networkStatus={networkStatus}
+                  commentService={commentService}
+                />
+              );
+            }}
+          </Subscribe>
         </ErrorBoundary>
       </div>
     );
   }
 }
 
-App.displayName = 'App';
+// parent
+class AppWithNetworkStatus extends React.Component {
+  render() {
+    return (
+      <Provider>
+        <Subscribe to={[OfflineStateContainer]}>
+          {offlineService => {
+            return (
+              <AppWithNetworkStatusEvents offlineService={offlineService} />
+            );
+          }}
+        </Subscribe>
+      </Provider>
+    );
+  }
+}
 
-export default App;
+export default AppWithNetworkStatus;

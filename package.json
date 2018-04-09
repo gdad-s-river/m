@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "await-to-js": "^2.0.1",
+    "unstated": "^1.2.0"
+  }
+}
