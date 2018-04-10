@@ -17,7 +17,10 @@ class CommentBoxViewContainer extends Component {
   };
 
   state = {
-    value: ''
+    value: '',
+    propState: {
+      networkStatus: this.props.networkState
+    }
   };
 
   setValue = value => {
@@ -27,10 +30,24 @@ class CommentBoxViewContainer extends Component {
   static getDerivedStateFromProps(nextProps, prevState) {
     const { state } = nextProps.commentService;
 
+    let propStateUpdate = { propState: {} };
+    let combinedStateUpdate = {};
+    if (nextProps.networkStatus !== prevState.propState.networkStatus) {
+      propStateUpdate.propState.networkStatus = nextProps.networkStatus;
+    }
+
     // if comment is fetched; put it in the state so that
     // it can be passed down to presentational 'components/CommentBox'
     if (state.commentHTTPState === 'fetched') {
-      return { value: state.comment.text };
+      combinedStateUpdate.value = state.comment.text;
+    }
+
+    if (!isEmptyObject(propStateUpdate.propState)) {
+      combinedStateUpdate.propState = propStateUpdate.propState;
+    }
+
+    if (!isEmptyObject(combinedStateUpdate)) {
+      return combinedStateUpdate;
     }
 
     return null;
@@ -58,11 +75,12 @@ class CommentBoxViewContainer extends Component {
   }
 
   async componentDidMount() {
-    const { commentService, networkStatus } = this.props;
+    const { commentService } = this.props;
+
     // const { networkStatus } = this.state.propState;
     const { state } = commentService;
 
-    this.preventUserFromLeaving(state.commentHTTPState, networkStatus);
+    this.preventUserFromLeaving();
 
     commentService.get(serverPaths.get.unpublishedComment);
   }
@@ -95,7 +113,11 @@ class CommentBoxViewContainer extends Component {
     }
   }, 2000);
 
-  preventUserFromLeaving(commentHTTPState, networkStatus) {
+  preventUserFromLeaving() {
+    const { commentService } = this.props;
+    const { networkStatus } = this.state.propState;
+    const { state } = commentService;
+
     if (!window) {
       throw new Error(
         'you got to call preventUserFromLeaving function when window is available'
@@ -103,11 +125,9 @@ class CommentBoxViewContainer extends Component {
     }
 
     window.addEventListener('beforeunload', e => {
-      if (commentHTTPState === 'saving' || networkStatus === 'offline') {
-        let confirmationMessage = 'o/';
-
-        e.returnValue = confirmationMessage; // Gecko, Trident, Chrome 34+
-
+      let confirmationMessage = 'o/';
+      e.returnValue = confirmationMessage; // Gecko, Trident, Chrome 34+
+      if (state.commentHTTPState === 'saving' || networkStatus === 'offline') {
         return confirmationMessage;
       }
     });
