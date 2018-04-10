@@ -44,11 +44,6 @@ exports.syncComment = async (req, res) => {
   }
 };
 
-exports.getCommentCount = async (req, res) => {
-  const count = await UnpublishedComment.count();
-  res.json({ hasComment: count ? true : false });
-};
-
 exports.getComment = async (req, res) => {
   const comment = await UnpublishedComment.findOne();
   res.json({ comment });

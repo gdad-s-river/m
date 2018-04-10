@@ -6,8 +6,7 @@ const pathMaker = serverHost => {
 
   return {
     get: {
-      unpublishedComment: `${serverHost}/api/fetch-unpublished/`,
-      unpublishedCommentCount: `${serverHost}/api/fetch-unpublished/count`
+      unpublishedComment: `${serverHost}/api/fetch-unpublished/`
     },
     post: {
       unpublishedComment: `${serverHost}/api/sync`
