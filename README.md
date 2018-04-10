@@ -1,3 +1,17 @@
+## Edit
+
+I spent a day and a half trying to decouple
+
+1.  state logic
+2.  container logic
+3.  presentational logic
+
+I used [`unstated`](http://unstated.io/) library to manage state. the `client/src/state-containers` holds the containers (not react components) which manage state. `client/src/view-containers` contain _smart_ react components. `client/src/components` contain the presentational components.
+
+## The video below was recorded before this change
+
+---
+
 # Journey —
 
 I first started learning `feathersjs`, because I was told that MGRM used it as its backend tech. It is a fascinating abstraction — all http methods inside on `service`, neat and seamless bindings with `express`, `mongoose ORM`, seamless middlewares integration, real time data operations using `socket.io` integrated already.
