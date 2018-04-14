@@ -38,9 +38,3 @@ More than anything else, if you could provide whatever feedback that you can, if
 ### This is the link to [video](https://www.youtube.com/watch?v=_DqdAp6HVdo) of a demo of the app.
 
 **Note** —— Some of the client side error handling is slightly out of sync in the above video. Correct demo of the same either in the video [here](https://youtu.be/eM-b9-lVqAU) or you can see it yourself after running and playing around with the app.
-
----
-
-### Update
-
-Starting taking [testing frontendmasters course by Kent C.Dodds](https://frontendmasters.com/courses/testing-javascript)
